@@ -25,14 +25,14 @@ export function AppShell({ children }: AppShellProps) {
   const avatarUrl = user?.user_metadata?.avatar_url
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#f5f1eb]">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="bg-white border-b-2 border-[#1a1a1a] sticky top-0 z-40">
+        <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
             {/* Logo / App name */}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-[#e05a28] border-2 border-[#1a1a1a] flex items-center justify-center">
                 <svg
                   className="w-5 h-5 text-white"
                   fill="none"
@@ -42,33 +42,33 @@ export function AppShell({ children }: AppShellProps) {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    strokeWidth={2.5}
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
                   />
                 </svg>
               </div>
-              <h1 className="text-display text-xl text-slate-800">Pipeline</h1>
+              <h1 className="font-display text-xl font-semibold text-[#1a1a1a]">// Dealflow</h1>
             </div>
 
             {/* User menu */}
             <div className="relative">
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                className="flex items-center gap-2 p-1.5 hover:bg-[#f5f1eb] transition-colors"
               >
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
                     alt=""
-                    className="w-8 h-8 rounded-full object-cover"
+                    className="w-8 h-8 border-2 border-[#1a1a1a] object-cover"
                   />
                 ) : (
-                  <div className="w-8 h-8 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center text-sm font-medium">
+                  <div className="w-8 h-8 bg-[#f5f1eb] text-[#1a1a1a] border-2 border-[#1a1a1a] flex items-center justify-center text-sm font-medium">
                     {getInitials()}
                   </div>
                 )}
                 <svg
-                  className={`w-4 h-4 text-slate-400 transition-transform ${menuOpen ? 'rotate-180' : ''}`}
+                  className={`w-4 h-4 text-[#1a1a1a] transition-transform ${menuOpen ? 'rotate-180' : ''}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -84,9 +84,9 @@ export function AppShell({ children }: AppShellProps) {
                     className="fixed inset-0 z-10"
                     onClick={() => setMenuOpen(false)}
                   />
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-dropdown border border-slate-200 py-1 z-20">
-                    <div className="px-4 py-2 border-b border-slate-100">
-                      <p className="text-sm font-medium text-slate-800 truncate">
+                  <div className="absolute right-0 mt-2 w-56 bg-white border-2 border-[#1a1a1a] shadow-[3px_3px_0_#1a1a1a] py-1 z-20">
+                    <div className="px-4 py-2 border-b-2 border-[#1a1a1a]/10">
+                      <p className="text-sm font-medium text-[#1a1a1a] truncate">
                         {user?.user_metadata?.full_name ?? 'Gebruiker'}
                       </p>
                       <p className="text-xs text-slate-500 truncate">{user?.email}</p>
@@ -96,7 +96,7 @@ export function AppShell({ children }: AppShellProps) {
                         setMenuOpen(false)
                         signOut()
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                      className="w-full px-4 py-2 text-left text-sm text-[#1a1a1a] hover:bg-[#f5f1eb] flex items-center gap-2"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path

@@ -34,17 +34,23 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-amber-100 rounded-full opacity-50 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-amber-50 rounded-full opacity-50 blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-[#f5f1eb] flex flex-col items-center justify-center p-4">
+      {/* Grid background */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, #1a1a1a 1px, transparent 1px),
+            linear-gradient(to bottom, #1a1a1a 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px'
+        }}
+      />
 
       <div className="relative w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+          <div className="w-14 h-14 bg-[#e05a28] border-2 border-[#1a1a1a] shadow-[3px_3px_0_#1a1a1a] flex items-center justify-center mb-4">
             <svg
               className="w-8 h-8 text-white"
               fill="none"
@@ -54,23 +60,23 @@ export function LoginPage() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                strokeWidth={2.5}
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
               />
             </svg>
           </div>
-          <h1 className="text-display text-3xl text-slate-800">Pipeline</h1>
-          <p className="text-slate-500 mt-2">Sales overzicht</p>
+          <h1 className="font-display text-3xl font-semibold text-[#1a1a1a]">// Dealflow</h1>
+          <p className="text-slate-600 mt-2 font-mono text-sm uppercase tracking-wide">Sales pipeline</p>
         </div>
 
         {/* Login card */}
         <div className="card p-6">
-          <h2 className="text-lg font-semibold text-slate-800 text-center mb-6">
+          <h2 className="text-lg font-semibold text-[#1a1a1a] text-center mb-6">
             Welkom terug
           </h2>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            <div className="mb-4 p-3 bg-red-50 border-2 border-red-500 text-sm text-red-700">
               {error}
             </div>
           )}
@@ -78,10 +84,10 @@ export function LoginPage() {
           <button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-slate-200 rounded-lg font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-[#1a1a1a] font-semibold text-[#1a1a1a] shadow-[3px_3px_0_#1a1a1a] hover:shadow-[5px_5px_0_#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             {loading ? (
-              <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-[#1a1a1a]/30 border-t-[#1a1a1a] rounded-full animate-spin" />
             ) : (
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -106,8 +112,8 @@ export function LoginPage() {
           </button>
         </div>
 
-        <p className="text-center text-xs text-slate-400 mt-6">
-          Alleen toegankelijk voor geautoriseerde gebruikers
+        <p className="text-center text-xs text-slate-500 mt-6 font-mono uppercase tracking-wide">
+          // Alleen geautoriseerde gebruikers
         </p>
       </div>
     </div>

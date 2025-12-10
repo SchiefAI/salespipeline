@@ -2,6 +2,14 @@ import type { StageId } from './stage'
 
 export type DealType = 'klant' | 'partner'
 
+export interface DealProspect {
+  id: string
+  deal_id: string
+  name: string
+  notes: string | null
+  created_at: string
+}
+
 export interface Deal {
   id: string
   user_id: string
@@ -12,6 +20,7 @@ export interface Deal {
   next_action_at: string | null
   last_activity_at: string
   created_at: string
+  prospects?: DealProspect[]
 }
 
 export interface CreateDealData {

@@ -2,14 +2,24 @@ import { useState } from 'react'
 import { STAGES, type StageId } from '../../types/stage'
 import type { Deal, CreateDealData, UpdateDealData, DealType } from '../../types/deal'
 
+interface ProspectInput {
+  id?: string
+  name: string
+  notes: string
+  isNew?: boolean
+  toDelete?: boolean
+}
+
 interface DealFormProps {
   deal?: Deal
   onSubmit: (data: CreateDealData | UpdateDealData) => Promise<void>
   onClose: () => void
   onDelete?: () => Promise<void>
+  onAddProspect?: (dealId: string, name: string, notes: string | null) => Promise<void>
+  onDeleteProspect?: (prospectId: string) => Promise<void>
 }
 
-export function DealForm({ deal, onSubmit, onClose, onDelete }: DealFormProps) {
+export function DealForm({ deal, onSubmit, onClose, onDelete, onAddProspect, onDeleteProspect }: DealFormProps) {
   const isEditing = !!deal
 
   // Format date for input (YYYY-MM-DD)
@@ -26,6 +36,31 @@ export function DealForm({ deal, onSubmit, onClose, onDelete }: DealFormProps) {
   const [submitting, setSubmitting] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Prospects state (alleen voor partners)
+  const [prospects, setProspects] = useState<ProspectInput[]>(
+    deal?.prospects?.map((p) => ({ id: p.id, name: p.name, notes: p.notes ?? '' })) ?? []
+  )
+  const [newProspectName, setNewProspectName] = useState('')
+  const [newProspectNotes, setNewProspectNotes] = useState('')
+
+  const handleAddProspect = () => {
+    if (!newProspectName.trim()) return
+    setProspects([...prospects, { name: newProspectName.trim(), notes: newProspectNotes.trim(), isNew: true }])
+    setNewProspectName('')
+    setNewProspectNotes('')
+  }
+
+  const handleRemoveProspect = (index: number) => {
+    const prospect = prospects[index]
+    if (prospect.id) {
+      // Mark existing prospect for deletion
+      setProspects(prospects.map((p, i) => (i === index ? { ...p, toDelete: true } : p)))
+    } else {
+      // Remove new prospect from list
+      setProspects(prospects.filter((_, i) => i !== index))
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,6 +91,19 @@ export function DealForm({ deal, onSubmit, onClose, onDelete }: DealFormProps) {
         stage_id: stageId,
         next_action_at: nextActionAt ? new Date(nextActionAt).toISOString() : null,
       })
+
+      // Handle prospect changes voor bestaande deals
+      if (isEditing && deal && dealType === 'partner') {
+        // Delete marked prospects
+        for (const prospect of prospects.filter((p) => p.toDelete && p.id)) {
+          if (onDeleteProspect) await onDeleteProspect(prospect.id!)
+        }
+        // Add new prospects
+        for (const prospect of prospects.filter((p) => p.isNew && !p.toDelete)) {
+          if (onAddProspect) await onAddProspect(deal.id, prospect.name, prospect.notes || null)
+        }
+      }
+
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Er ging iets mis')
@@ -81,20 +129,20 @@ export function DealForm({ deal, onSubmit, onClose, onDelete }: DealFormProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-[#1a1a1a]/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md">
+      <div className="relative bg-white border-2 border-[#1a1a1a] shadow-[5px_5px_0_#1a1a1a] w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-800">
-            {isEditing ? 'Deal bewerken' : 'Nieuwe deal'}
+        <div className="flex items-center justify-between px-6 py-4 border-b-2 border-[#1a1a1a]">
+          <h2 className="text-lg font-semibold text-[#1a1a1a]">
+            {isEditing ? '// Deal bewerken' : '// Nieuwe deal'}
           </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-slate-100 transition-colors"
+            className="p-1 hover:bg-[#f5f1eb] transition-colors border-2 border-transparent hover:border-[#1a1a1a]"
           >
-            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-[#1a1a1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -103,7 +151,7 @@ export function DealForm({ deal, onSubmit, onClose, onDelete }: DealFormProps) {
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            <div className="p-3 bg-red-50 border-2 border-red-500 text-sm text-red-700">
               {error}
             </div>
           )}
@@ -133,9 +181,8 @@ export function DealForm({ deal, onSubmit, onClose, onDelete }: DealFormProps) {
                   value="klant"
                   checked={dealType === 'klant'}
                   onChange={() => setDealType('klant')}
-                  className="w-4 h-4 text-amber-500 border-slate-300 focus:ring-amber-500"
                 />
-                <span className="text-sm text-slate-700">Klant</span>
+                <span className="text-sm text-[#1a1a1a]">Klant</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -144,9 +191,8 @@ export function DealForm({ deal, onSubmit, onClose, onDelete }: DealFormProps) {
                   value="partner"
                   checked={dealType === 'partner'}
                   onChange={() => setDealType('partner')}
-                  className="w-4 h-4 text-amber-500 border-slate-300 focus:ring-amber-500"
                 />
-                <span className="text-sm text-slate-700">Partner</span>
+                <span className="text-sm text-[#1a1a1a]">Partner</span>
               </label>
             </div>
           </div>
@@ -195,6 +241,88 @@ export function DealForm({ deal, onSubmit, onClose, onDelete }: DealFormProps) {
               className="input"
             />
           </div>
+
+          {/* Prospects sectie (alleen voor partners) */}
+          {dealType === 'partner' && isEditing && (
+            <div className="border-t border-slate-200 pt-4">
+              <label className="label">Prospects (tips via partner)</label>
+
+              {/* Bestaande prospects */}
+              {prospects.filter((p) => !p.toDelete).length > 0 && (
+                <div className="space-y-2 mb-3">
+                  {prospects
+                    .map((prospect, index) => ({ prospect, index }))
+                    .filter(({ prospect }) => !prospect.toDelete)
+                    .map(({ prospect, index }) => (
+                      <div
+                        key={prospect.id ?? `new-${index}`}
+                        className="flex items-start gap-2 p-2 bg-slate-50 rounded-lg"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-700 truncate">{prospect.name}</p>
+                          {prospect.notes && (
+                            <p className="text-xs text-slate-500 truncate">{prospect.notes}</p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveProspect(index)}
+                          className="p-1 text-slate-400 hover:text-red-500 transition-colors shrink-0"
+                          title="Verwijderen"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                </div>
+              )}
+
+              {/* Nieuwe prospect toevoegen */}
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={newProspectName}
+                  onChange={(e) => setNewProspectName(e.target.value)}
+                  className="input"
+                  placeholder="Naam prospect"
+                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newProspectNotes}
+                    onChange={(e) => setNewProspectNotes(e.target.value)}
+                    className="input flex-1"
+                    placeholder="Notities (optioneel)"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleAddProspect()
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddProspect}
+                    disabled={!newProspectName.trim()}
+                    className="btn btn-secondary shrink-0"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Info voor nieuwe partner deals */}
+          {dealType === 'partner' && !isEditing && (
+            <p className="text-xs text-slate-500 italic">
+              Prospects kunnen worden toegevoegd na het aanmaken van de deal.
+            </p>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">

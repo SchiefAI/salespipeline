@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { STAGES, type StageId } from '../../types/stage'
 import type { Deal, CreateDealData, UpdateDealData } from '../../types/deal'
 import { StageColumn } from './StageColumn'
 import { DealForm } from './DealForm'
+import { DealDetailModal } from './DealDetailModal'
 
 export function PipelineBoard() {
   const [deals, setDeals] = useState<Deal[]>([])
@@ -11,7 +12,12 @@ export function PipelineBoard() {
   const [error, setError] = useState<string | null>(null)
   const [showDealForm, setShowDealForm] = useState(false)
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null)
+  const [viewingDeal, setViewingDeal] = useState<Deal | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [barsAnimated, setBarsAnimated] = useState(false)
+  const [donutAnimated, setDonutAnimated] = useState(false)
+  const barsRef = useRef<HTMLDivElement>(null)
+  const donutRef = useRef<HTMLDivElement>(null)
 
   // Fetch deals from Supabase (inclusief prospects)
   const fetchDeals = useCallback(async () => {
@@ -68,6 +74,9 @@ export function PipelineBoard() {
       amount: data.amount,
       stage_id: data.stage_id,
       next_action_at: data.next_action_at,
+      notes: data.notes,
+      company_url: data.company_url,
+      contact_url: data.contact_url,
       last_activity_at: now,
     })
 
@@ -134,6 +143,20 @@ export function PipelineBoard() {
   const handleEditDeal = (deal: Deal) => {
     setEditingDeal(deal)
     setShowDealForm(true)
+  }
+
+  // Open detail view
+  const handleViewDeal = (deal: Deal) => {
+    setViewingDeal(deal)
+  }
+
+  // Edit from detail view
+  const handleEditFromDetail = () => {
+    if (viewingDeal) {
+      setEditingDeal(viewingDeal)
+      setViewingDeal(null)
+      setShowDealForm(true)
+    }
   }
 
   // Close form
@@ -258,6 +281,54 @@ export function PipelineBoard() {
   const getStageName = (stageId: string) => {
     return STAGES.find((s) => s.id === stageId)?.name ?? stageId
   }
+
+  // Reset animation state when loading
+  useEffect(() => {
+    if (loading) {
+      setBarsAnimated(false)
+      setDonutAnimated(false)
+    }
+  }, [loading])
+
+  // Intersection Observer for donut animation
+  useEffect(() => {
+    if (!donutRef.current || loading || donutAnimated) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setTimeout(() => setDonutAnimated(true), 100)
+            observer.disconnect()
+          }
+        })
+      },
+      { threshold: 0.5 }
+    )
+
+    observer.observe(donutRef.current)
+    return () => observer.disconnect()
+  }, [loading, donutAnimated])
+
+  // Intersection Observer for bars animation
+  useEffect(() => {
+    if (!barsRef.current || loading || barsAnimated) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setTimeout(() => setBarsAnimated(true), 100)
+            observer.disconnect()
+          }
+        })
+      },
+      { threshold: 0.5 }
+    )
+
+    observer.observe(barsRef.current)
+    return () => observer.disconnect()
+  }, [loading, barsAnimated])
 
   if (loading) {
     return (
@@ -407,7 +478,7 @@ export function PipelineBoard() {
                   {dealsWithActions.slice(0, 6).map((deal) => (
                     <div
                       key={deal.id}
-                      onClick={() => handleEditDeal(deal)}
+                      onClick={() => handleViewDeal(deal)}
                       className={`flex items-center gap-4 p-3 border-2 cursor-pointer transition-all ${
                         isOverdue(deal.next_action_at!)
                           ? 'border-red-500 bg-red-50 hover:shadow-[3px_3px_0_#ef4444]'
@@ -456,7 +527,7 @@ export function PipelineBoard() {
                   {/* Top row: Type verdeling + Waarde */}
                   <div className="grid grid-cols-2 gap-4">
                     {/* Type verdeling (donut-achtig) */}
-                    <div className="border-2 border-[#1a1a1a] p-5">
+                    <div ref={donutRef} className="border-2 border-[#1a1a1a] p-5">
                       <p className="text-xs font-mono uppercase tracking-wide text-slate-500 mb-4">Type verdeling</p>
                       <div className="flex flex-col items-center gap-4">
                         <div className="relative w-32 h-32">
@@ -466,22 +537,24 @@ export function PipelineBoard() {
                               cx="18" cy="18" r="14" fill="none"
                               stroke="#e05a28"
                               strokeWidth="3"
-                              strokeDasharray={`${(deals.filter(d => d.deal_type === 'klant').length / deals.length) * 88} 88`}
+                              strokeDasharray={`${donutAnimated ? (deals.filter(d => d.deal_type === 'klant').length / Math.max(deals.length, 1)) * 88 : 0} 88`}
+                              className="transition-all duration-1000 ease-out"
                             />
                             <circle
                               cx="18" cy="18" r="14" fill="none"
                               stroke="#082B3B"
                               strokeWidth="3"
-                              strokeDasharray={`${(deals.filter(d => d.deal_type === 'partner').length / deals.length) * 88} 88`}
-                              strokeDashoffset={`-${(deals.filter(d => d.deal_type === 'klant').length / deals.length) * 88}`}
+                              strokeDasharray={`${donutAnimated ? (deals.filter(d => d.deal_type === 'partner').length / Math.max(deals.length, 1)) * 88 : 0} 88`}
+                              strokeDashoffset={`-${(deals.filter(d => d.deal_type === 'klant').length / Math.max(deals.length, 1)) * 88}`}
+                              className="transition-all duration-1000 ease-out delay-300"
                             />
                           </svg>
-                          <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <div className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-700 delay-500 ${donutAnimated ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
                             <span className="text-2xl font-bold text-[#1a1a1a]">{deals.length}</span>
                             <span className="text-xs text-slate-500">deals</span>
                           </div>
                         </div>
-                        <div className="flex gap-6">
+                        <div className={`flex gap-6 transition-all duration-500 delay-700 ${donutAnimated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
                           <div className="flex items-center gap-2">
                             <div className="w-3 h-3 bg-[#e05a28]" />
                             <span className="text-sm font-medium">{deals.filter(d => d.deal_type === 'klant').length} Klant</span>
@@ -521,23 +594,27 @@ export function PipelineBoard() {
                   </div>
 
                   {/* Pipeline per stage (horizontal bars) - full width */}
-                  <div className="border-2 border-[#1a1a1a] p-5">
+                  <div ref={barsRef} className="border-2 border-[#1a1a1a] p-5">
                     <p className="text-xs font-mono uppercase tracking-wide text-slate-500 mb-4">Deals per stage</p>
                     <div className="space-y-3">
-                      {STAGES.map((stage) => {
+                      {STAGES.map((stage, index) => {
                         const count = deals.filter(d => d.stage_id === stage.id).length
                         const maxCount = Math.max(...STAGES.map(s => deals.filter(d => d.stage_id === s.id).length), 1)
                         const percentage = (count / maxCount) * 100
                         return (
                           <div key={stage.id} className="flex items-center gap-3">
                             <span className="text-sm w-24 truncate text-slate-600">{stage.name}</span>
-                            <div className="flex-1 h-6 bg-[#f5f1eb]">
+                            <div className="flex-1 h-6 bg-[#f5f1eb] overflow-hidden">
                               <div
-                                className={`h-full transition-all ${stage.id === 'won' ? 'bg-green-500' : 'bg-[#e05a28]'}`}
-                                style={{ width: `${percentage}%`, opacity: stage.id === 'won' ? 1 : 0.4 + (STAGES.findIndex(s => s.id === stage.id) * 0.1) }}
+                                className={`h-full transition-all duration-700 ease-out ${stage.id === 'won' ? 'bg-green-500' : 'bg-[#e05a28]'}`}
+                                style={{
+                                  width: barsAnimated ? `${percentage}%` : '0%',
+                                  opacity: stage.id === 'won' ? 1 : 0.4 + (STAGES.findIndex(s => s.id === stage.id) * 0.1),
+                                  transitionDelay: `${index * 80}ms`
+                                }}
                               />
                             </div>
-                            <span className="font-mono text-sm w-8 text-right font-bold">{count}</span>
+                            <span className={`font-mono text-sm w-8 text-right font-bold transition-opacity duration-300 ${barsAnimated ? 'opacity-100' : 'opacity-0'}`} style={{ transitionDelay: `${200 + index * 80}ms` }}>{count}</span>
                           </div>
                         )
                       })}
@@ -547,6 +624,20 @@ export function PipelineBoard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Deal detail modal */}
+      {viewingDeal && (
+        <DealDetailModal
+          deal={viewingDeal}
+          onClose={() => setViewingDeal(null)}
+          onEdit={handleEditFromDetail}
+          onStageChange={(dealId, newStageId) => {
+            handleStageChange(dealId, newStageId)
+            // Update viewing deal with new stage
+            setViewingDeal((prev) => prev ? { ...prev, stage_id: newStageId } : null)
+          }}
+        />
       )}
 
       {/* Deal form modal */}

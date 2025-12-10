@@ -118,6 +118,27 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* Main content */}
       <main>{children}</main>
+
+      {/* Footer */}
+      <footer className="bg-[#1a1a1a] border-t-2 border-[#1a1a1a] px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-white/60 font-mono">
+            // Dealflow — Een{' '}
+            <a
+              href="https://thinkahead.digital"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#e05a28] hover:text-white transition-colors"
+            >
+              Think Ahead
+            </a>
+            {' '}project
+          </p>
+          <p className="text-xs text-white/40 font-mono">
+            {new Date().getFullYear()}
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }

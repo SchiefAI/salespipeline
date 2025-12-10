@@ -33,6 +33,9 @@ export function DealForm({ deal, onSubmit, onClose, onDelete, onAddProspect, onD
   const [amount, setAmount] = useState(deal?.amount?.toString() ?? '')
   const [stageId, setStageId] = useState<StageId>(deal?.stage_id ?? 'suspect')
   const [nextActionAt, setNextActionAt] = useState(formatDateForInput(deal?.next_action_at ?? null))
+  const [notes, setNotes] = useState(deal?.notes ?? '')
+  const [companyUrl, setCompanyUrl] = useState(deal?.company_url ?? '')
+  const [contactUrl, setContactUrl] = useState(deal?.contact_url ?? '')
   const [submitting, setSubmitting] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -90,6 +93,9 @@ export function DealForm({ deal, onSubmit, onClose, onDelete, onAddProspect, onD
         amount: parsedAmount,
         stage_id: stageId,
         next_action_at: nextActionAt ? new Date(nextActionAt).toISOString() : null,
+        notes: notes.trim() || null,
+        company_url: companyUrl.trim() || null,
+        contact_url: contactUrl.trim() || null,
       })
 
       // Handle prospect changes voor bestaande deals
@@ -171,6 +177,45 @@ export function DealForm({ deal, onSubmit, onClose, onDelete, onAddProspect, onD
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="companyUrl" className="label">
+                Website <span className="text-slate-400 font-normal">— optioneel</span>
+              </label>
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                </svg>
+                <input
+                  type="url"
+                  id="companyUrl"
+                  value={companyUrl}
+                  onChange={(e) => setCompanyUrl(e.target.value)}
+                  className="input pl-9"
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="contactUrl" className="label">
+                Contact <span className="text-slate-400 font-normal">— optioneel</span>
+              </label>
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <input
+                  type="url"
+                  id="contactUrl"
+                  value={contactUrl}
+                  onChange={(e) => setContactUrl(e.target.value)}
+                  className="input pl-9"
+                  placeholder="LinkedIn, e-mail..."
+                />
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="label">Type</label>
             <div className="flex gap-4">
@@ -239,6 +284,20 @@ export function DealForm({ deal, onSubmit, onClose, onDelete, onAddProspect, onD
               value={nextActionAt}
               onChange={(e) => setNextActionAt(e.target.value)}
               className="input"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="notes" className="label">
+              Opmerkingen <span className="text-slate-400 font-normal">— optioneel</span>
+            </label>
+            <textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="input min-h-[100px] resize-y"
+              placeholder="Notities, context, to-do's..."
+              rows={4}
             />
           </div>
 

@@ -18,6 +18,9 @@ export interface Deal {
   deal_type: DealType
   amount: number | null
   next_action_at: string | null
+  notes: string | null
+  company_url: string | null
+  contact_url: string | null
   last_activity_at: string
   created_at: string
   prospects?: DealProspect[]
@@ -29,6 +32,9 @@ export interface CreateDealData {
   amount: number | null
   stage_id: StageId
   next_action_at: string | null
+  notes: string | null
+  company_url: string | null
+  contact_url: string | null
 }
 
 export interface UpdateDealData {
@@ -37,5 +43,8 @@ export interface UpdateDealData {
   amount?: number | null
   stage_id?: StageId
   next_action_at?: string | null
+  notes?: string | null
+  company_url?: string | null
+  contact_url?: string | null
   last_activity_at?: string
 }
